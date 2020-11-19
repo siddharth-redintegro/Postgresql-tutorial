@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse,JsonResponse
-from .models import Blog
+from .models import Blog,User
 from django.core import serializers
 from django.utils import timezone
 import json
@@ -67,5 +67,47 @@ def update_blog(request,id):
     
     return JsonResponse(data)
 
+@csrf_exempt
+@require_http_methods(['POST'])
+def inser_new_user(request):
+    data = json.loads(request.body.decode('utf-8'))
+
+    new_user = User(
+        user_name=data['user_name'],
+        user_desc=data['user_desc'],
+        user_phone=data['user_phone'],
+        user_email=data['user_email'],
+        user_password=data['user_password']
+    )
+    new_user.save()
+    return JsonResponse(data)
+    
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def update_user(request, id):
+    data = json.loads(request.body.decode('utf-8'))
+    old_user = User.objects.get(pk=id)
+
+    old_user.user_name = data['user_name']
+    old_user.user_desc = data['user_desc']
+    old_user.user_phone = data['user_phone']
+    old_user.user_email=data['user_email']
+    old_user.user_password=data['user_password']
+    old_user.save()
+    return JsonResponse(data)
 
 
+
+@csrf_exempt
+@require_http_methods(['POST'])
+def delete_user(request,id):
+    print(id)
+    old_user = User.objects.get(pk=id)
+    old_user.delete()
+    return HttpResponse(f'ID deleted: {id}')
+
+def user_list(request):
+    data = User.objects.all()
+    response = serializers.serialize("json", data)
+    return HttpResponse(response, content_type="application/json")
